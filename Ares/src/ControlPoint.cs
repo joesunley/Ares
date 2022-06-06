@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 using System.Xml;
 
 namespace Ares.Core
@@ -24,10 +19,6 @@ namespace Ares.Core
         {
             string id = node.Attributes[0].Value;
             string type = node.Attributes[1].Value;
-
-            string code = "";
-            string x = "", y = "";
-
             switch (type.ToLower())
             {
                 case "normal": _type = ControlPointType.Normal; break;
@@ -36,6 +27,9 @@ namespace Ares.Core
                 default: throw new ArgumentException("Unrecognised Control Type");
             }
 
+
+            string code;
+            string x, y;
             if (_type == 0)
             {
                 code = node.ChildNodes[0].InnerText;
@@ -56,6 +50,12 @@ namespace Ares.Core
                 (float)Convert.ToDouble(x),
                 (float)Convert.ToDouble(y));
 
+        }
+
+        public ControlPoint()
+        {
+            _id = -1;
+            _code = -1;
         }
     }
 

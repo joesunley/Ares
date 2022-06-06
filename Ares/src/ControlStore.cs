@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections;
 using System.Xml;
 
 namespace Ares.Core
@@ -19,6 +14,7 @@ namespace Ares.Core
         
         public ControlStore(string filePath)
         {
+            _controlDict = new();
             XmlDocument doc = new();
             doc.Load(filePath);
 
@@ -77,7 +73,84 @@ namespace Ares.Core
 
         void CreateXml(List<Course> courses, string filePath)
         {
+            List<string> courseStr = new();
+            string controlStr = "";
+            int cControlID = 1;
+            int courseID = 1;
+            
+            foreach (Course c in courses)
+            {
+                string title = "";
+                courseStr.Add(CourseStr(courseID, cControlID, _scale, new() { title }));
+                courseID++;
+                
+                for (int i = 0; i < c.Count; i++)
+                {
+                    if (i == c.Count - 1)
+                        controlStr += EndControlStr(cControlID, c[i].ID);
+                    else
+                        controlStr += ControlStr(cControlID, cControlID + 1, c[i].ID);
 
+                    cControlID++;
+                }
+            }
+
+            string text = File.ReadAllText(_filePath);
+
+            int loc = text.IndexOf("<course id=");
+            text = text.Substring(0, loc);
+
+            foreach (string s in courseStr)
+                text += s;
+
+            text += controlStr;
+            text += "</course-scribe-event>";
+
+            File.WriteAllText(filePath, text);
+        }
+        
+        string ControlStr(int c1, int c2, int id)
+        {
+            return "<course-control id=\"" + c1.ToString() + "\" control=\"" + id.ToString() + "\">"
+                + Environment.NewLine
+                + "<next course-control=\"" + c2.ToString() + "\" />"
+                + Environment.NewLine
+                + "</course-control>"
+                + Environment.NewLine;
+        }
+        string EndControlStr(int c1, int id)
+        {
+            return "<course-control id=\"" + c1.ToString() + "\" control=\"" + id.ToString() + "\" />"
+                + Environment.NewLine;
+        }
+        string CourseStr(int id, int c1, int scale, List<string> data)
+        {
+            string s = "";
+            foreach (string d in data)
+            { s += d + "|"; }
+            try
+            { s = s.Substring(0, s.Length - 1); }
+            catch { }
+
+
+            return
+                "<course id=\"" + id.ToString() + "\" kind=\"normal\" order=\"" + id.ToString() + "\">"
+                + Environment.NewLine
+                + "<name>Course " + id.ToString() + "</name>"
+                + Environment.NewLine
+                + "<secondary-title>" + s + "</secondary-title>"
+                + Environment.NewLine
+                + "<labels label-kind=\"sequence\" />"
+                + Environment.NewLine
+                + "<first course-control=\"" + c1.ToString() + "\" />"
+                + Environment.NewLine
+                + "<print-area automatic=\"true\" restrict-to-page-size=\"true\" "
+                + "left=\"16.7639771\" top=\"219.328979\" right=\"313.689972\" bottom=\"9.270966\" page-width=\"827\" page-height=\"1169\" page-margins=\"0\" page-landscape=\"true\" />"
+                + Environment.NewLine
+                + "<options print-scale=\"" + scale.ToString() + "\" description-kind=\"symbols\" />"
+                + Environment.NewLine
+                + "</course>"
+                + Environment.NewLine;
         }
     } 
 }
